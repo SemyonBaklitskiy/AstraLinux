@@ -47,15 +47,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QFileSystemModel>
-#include <QFileIconProvider>
-#include <QTreeView>
-#include <QCommandLineParser>
-#include <QCommandLineOption>
-#include <unistd.h> //include file where username() function is defined
+#include "myclasses.h"
 
 int main(int argc, char *argv[])
 {
@@ -72,20 +64,22 @@ int main(int argc, char *argv[])
     parser.process(app);
 
     const QString username(getlogin()); //getting current username
-    const QString userPath("/home/" + username); //user`s directory
-
-    const QString rootPath = userPath; //parser.positionalArguments().isEmpty()
+    const QString rootPath = "/home/" + username; //user`s directory
+        //parser.positionalArguments().isEmpty()
         //? QString() : parser.positionalArguments().first(); //specified the user`s directory instead of default
 
     QFileSystemModel model;
-
-    model.setFilter(QDir::Dirs |QDir::Files | QDir::Hidden); //set filter to view files and directories including hidden
+    model.setFilter(ALL); //setting filter to view files and directories including hidden
 
     model.setRootPath("");
     if (parser.isSet(dontUseCustomDirectoryIconsOption))
         model.iconProvider()->setOptions(QFileIconProvider::DontUseCustomDirectoryIcons);
     QTreeView tree;
     tree.setModel(&model);
+
+    MyLineEdit lineEdit(&tree, model, rootPath); //adding MyLineEdit widget
+    QObject::connect(&lineEdit, &QLineEdit::textChanged, &lineEdit, &MyLineEdit::onTextChanged);
+
     if (!rootPath.isEmpty()) {
         const QModelIndex rootIndex = model.index(QDir::cleanPath(rootPath));
         if (rootIndex.isValid())
